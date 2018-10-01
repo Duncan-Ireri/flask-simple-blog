@@ -1,0 +1,232 @@
+{% extends "./_admin_base.html" %}
+
+
+
+{% block content %}
+
+{% include '_admin_nav.html' %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-3">
+
+        </div>
+        <div class="col-md-9">
+            <ul class="nav nav-tabs">
+                <li class=""><a href="#main" data-toggle="tab" aria-expanded="false">Menu</a></li>
+                <li class=""><a href="#dessert" data-toggle="tab" aria-expanded="false">Dessert and Drinks</a></li>
+                <li class="dropdown active">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+                        Page and Notice Creation <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#createnotice" data-toggle="tab">Create Notice</a></li>
+                        <li class="divider"></li>
+                        <li class="active"><a href="#createpage" data-toggle="tab" aria-expanded="true">Create Page</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <div id="myTabContent" class="tab-content">
+
+
+
+
+                <div class="tab-pane fade" id="main">
+
+
+                    <form class="form-horizontal">
+                        <fieldset>
+                            <legend>MAIN COURSE</legend>
+                            <div class="form-group">
+                                <label for="InputPlate">Dish</label>
+                                <input type="text" class="form-control" id="InputPlate" placeholder="Dish Name">
+                            </div>
+                            <div class="form-group">
+                                <label for="InputPrice">Price</label>
+                                <input type="text" class="form-control" id="InputPrice" placeholder="Price">
+                            </div>
+                            <div class="form-group">
+                                <label for="InputFile">Image Input</label>
+                                <input type="file" id="InputFile">
+                                <p class="help-block">Image of Dish.</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="textArea" class="col-lg-2 control-label">Description</label>
+                                <div class="col-lg-10">
+                                    <textarea class="form-control" rows="3" id="textArea"></textarea>
+                                    <span class="help-block">A brief descrition of the Dish</span>
+                                </div>
+                            </div>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="c1" onclick="showMe('div1')"> On Offer
+                                </label>
+                            </div>
+                            <div class="form-group" id="div1" style="display:none">
+                                <label for="InputOfferPrice">Offer Price</label>
+                                <input type="text" class="form-control" id="InputOfferPrice" placeholder="Offer Price">
+                            </div>
+                            <button type="submit" class="btn btn-default">Submit</button>
+                        </fieldset>
+                    </form>
+                </div>
+
+
+
+
+                <div class="tab-pane fade" id="dessert">
+                        <form class="form-horizontal">
+                                <fieldset>
+                                    <legend>DESSERT AND JIUCES</legend>
+                                    <div class="form-group">
+                                        <label for="InputDessert">Dessert</label>
+                                        <input type="text" class="form-control" id="InputDessert" placeholder="Dessert Name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="InputDessertPrice">Price</label>
+                                        <input type="text" class="form-control" id="InputDessertPrice" placeholder="Dessert Price">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="InputFile">Image Input</label>
+                                        <input type="file" id="InputFile">
+                                        <p class="help-block">Image of Dish.</p>
+                                    </div>
+                                    <div class="form-group">
+                                            <label for="select" class="col-lg-2 control-label">Type of Dessert</label>
+                                            <div class="col-lg-10">
+                                              <select class="form-control" id="select">
+                                                <option>Fruit</option>
+                                                <option>Cake</option>
+                                                <option>Juice</option>
+                                                <option>Pie</option>
+                                              </select>
+                                            </div>
+                                          </div>
+                                    <div class="form-group">
+                                        <label for="textArea" class="col-lg-2 control-label">Description</label>
+                                        <div class="col-lg-10">
+                                            <textarea class="form-control" rows="3" id="textArea"></textarea>
+                                            <span class="help-block">A brief descrition of the Dessert</span>
+                                        </div>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="c2" onclick="showMe('div2')"> On Offer
+                                        </label>
+                                    </div>
+                                    <div class="form-group" id="div2" style="display:none">
+                                        <label for="InputDessertOfferPrice">Offer Price</label>
+                                        <input type="text" class="form-control" id="InputDessertOfferPrice" placeholder="Dessert Offer Price">
+                                    </div>
+                                    <button type="submit" class="btn btn-default">Submit</button>
+                                </fieldset>
+                            </form>
+                </div>
+
+
+
+
+                <div class="tab-pane fade" id="createnotice">
+
+                    <form class="form-horizontal">
+                        <fieldset>
+                            <legend>MAKE NOTICE</legend>
+                            <div class="form-group">
+                                <label for="inputNotice" class="col-sm-2 control-label">Notice</label>
+                                <div class="col-sm-10">
+                                    <input type="text" class="form-control" id="inputNotice" placeholder="Notice">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="inputPage" class="col-sm-2 control-label">Page to show notice</label>
+                                <select class="form-control">
+                                    <option>1</option>
+                                    <option>2</option>
+                                    <option>3</option>
+                                    <option>4</option>
+                                    <option>5</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="textArea" class="col-lg-2 control-label">Notice</label>
+                                <div class="col-lg-10">
+                                    <textarea class="form-control" rows="3" id="textArea"></textarea>
+                                    <span class="help-block">A longer block of help text that breaks onto a new line
+                                        and may extend beyond one line.</span>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                    </form>
+
+                </div>
+
+
+
+
+                <div class="tab-pane fade active in" id="createpage">
+
+                    <form class="form-horizontal">
+                        <fieldset>
+                            <legend>MAKE PAGE</legend>
+                            <div class="form-group">
+                                <label for="inputPage" class="col-sm-2 control-label">Page Name</label>
+                                <div class="col-sm-10">
+                                    <input type="text" class="form-control" id="inputPage" placeholder="Notice">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="textArea" class="col-lg-2 control-label">Page Content</label>
+                                <div class="col-lg-10">
+                                    <textarea class="form-control" rows="3" id="textArea"></textarea>
+                                    <span class="help-block">A longer block of help text that breaks onto a new line
+                                        and may extend beyond one line.</span>
+                                </div>
+                            </div>
+                        </fieldset>
+
+
+                    </form>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function showMe(box) {
+
+        var chboxs = document.getElementsByName("c1");
+        var vis = "none";
+        for (var i = 0; i < chboxs.length; i++) {
+            if (chboxs[i].checked) {
+                vis = "block";
+                break;
+            }
+        }
+        document.getElementById(box).style.display = vis;
+    }
+</script>
+
+<script>
+        function showMe(box) {
+    
+            var chboxs = document.getElementsByName("c2");
+            var vis = "none";
+            for (var i = 0; i < chboxs.length; i++) {
+                if (chboxs[i].checked) {
+                    vis = "block";
+                    break;
+                }
+            }
+            document.getElementById(box).style.display = vis;
+        }
+    </script>
+
+
+{% endblock content %}
