@@ -2,7 +2,7 @@ import datetime, os, random, string
 from flask import Flask, request, render_template, session, url_for, redirect
 from flask_babelex import Babel
 from flask_sqlalchemy import SQLAlchemy
-from flask_user import current_user, login_required, roles_required, UserManager, UserMixin
+from flask_user import current_user, login_required, roles_required, UserManager, UserMixin, user_manager
 from flask_admin import Admin
 from faker import Faker
 
@@ -68,6 +68,7 @@ class Pages(db.Model):
     category = db.Column(db.Integer, db.ForeignKey('categories.id'))
     title = db.Column(db.String(1000))
     content = db.Column(db.Text())
+    page_created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     topic_name = db.Column(db.String(120), nullable=False)
 
     def __init__(self, title, content):
@@ -123,7 +124,7 @@ if not User.query.filter(User.username == 'member').first():
     user = User(
         username='member',
         email_confirmed_at=datetime.datetime.utcnow(),
-        password=user_manager.hash_passworddmin('Password1'),
+        password=user_manager.hash_password('Password1'),
     )
     db.session.add(user)
     db.session.commit()
@@ -148,13 +149,13 @@ def index():
 @app.route('/post/<int:page_id>')
 def post(page_id):
 	page = Pages.query.filter_by(id=page_id).first()
-	return render_template('single-post.html', id=page.id, category=page.category, title=page.title, content=page.content)
+	return render_template('single-post.html', id=page.id, category=page.category, title=page.title, page_created=page.page_created, content=page.content)
 
 @app.route('/edit-page/<int:page_id>')
 @login_required
 def edit_page(page_id):
     page = Pages.query.filter_by(id=page_id).first()
-    return render_template('edit-page.html', id=page.id, category=page.category, title=page.title, content=page.content)
+    return render_template('edit-page.html', id=page.id, category=page.category, title=page.title, page_created=page.page_created, content=page.content)
 
 @app.route('/update-page/', methods=['POST'])
 @login_required
@@ -163,14 +164,15 @@ def update_page():
     category = request.form['category']
     title = request.form['title']
     content = request.form['content']
-    Pages.query.filter_by(id=page_id).update({'title': title.encode('ascii'), 'category': category.encode('ascii'), 'content': content.encode('ascii')})
+    page_created = request.form['page_created']
+    Pages.query.filter_by(id=page_id).update({'title': title.encode('ascii'), 'category': category.encode('ascii'), 'page_created': page_created.encode('ascii'), 'content': content.encode('ascii')})
     db.session.commit()
     return redirect('/page/' + page_id)
 
 @app.route('/save-page/', methods=['POST'])
 @login_required
 def save_page():
-    page = Pages(title=request.form['title'].encode('ascii'), category=request.form['category'].encode('ascii'), content=request.form['content'].encode('ascii'))
+    page = Pages(title=request.form['title'].encode('ascii'), category=request.form['category'].encode('ascii'), page_created=request.form['page_created'].encode('ascii'), content=request.form['content'].encode('ascii'))
     db.session.add(page)
     db.session.commit()
     return redirect('/page/%d' % page.id)

@@ -1,8 +1,12 @@
-{% extends "layout.html" %} {% block content %}
+{% extends "layout.html" %} 
+
+{% block title %}FAQ PAGE{% endblock title %}
+
+{% block content %}
     <section class="hero is-info is-medium is-bold">
         <div class="hero-body">
                             <div class="media-content has-text-centered">
-                                <h1 class="title article-title">Sapien eget mi proin sed 🔱</h1>
+                                <h1 class="title article-title">{{ title }}</h1>
                                 <p class="subtitle is-6 article-subtitle">
                                     <a href="#">@daria</a> on February 17, 2018
                                 </p>
