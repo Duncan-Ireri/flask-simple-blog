@@ -3,7 +3,16 @@ from flask import Flask, request, render_template, session, url_for, redirect
 from flask_babelex import Babel
 from flask_sqlalchemy import SQLAlchemy
 from flask_user import current_user, login_required, roles_required, UserManager, UserMixin, user_manager
+from flask_uploads import UploadSet, configure_uploads, IMAGES, patch_request_class
+from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileRequired, FileAllowed
+from wtforms.validators import DataRequired
+from werkzeug.utils import secure_filename
+from wtforms_sqlalchemy.fields import QuerySelectField
+from wtf_tinymce.forms.fields import TinyMceField
+from wtforms import SubmitField, StringField, PasswordField, TextAreaField
 from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
 from faker import Faker
 
 class ConfigClass(object):
@@ -49,6 +58,9 @@ db = SQLAlchemy(app)
 # faker init
 
 fake = Faker()
+admin = Admin(app)
+from wtf_tinymce import wtf_tinymce
+wtf_tinymce.init_app(app)
 
 # Define the User data-model.
 # NB: Make sure to add flask_user UserMixin !!!
@@ -57,8 +69,13 @@ class Categories(db.Model):
     __tablename_ = 'categories'
     id = db.Column(db.Integer, primary_key=True)
     category_name = db.Column(db.String(120), nullable=False)
-    posts = db.relationship('Pages', backref='post', lazy='dynamic')
     created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    def __init__(self, category_name):
+        self.category_name = category_name
+
+    def __repr__(self):
+        return '%r' % (self.category_name)
 
 
 class Pages(db.Model):
@@ -71,21 +88,14 @@ class Pages(db.Model):
     page_created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     topic_name = db.Column(db.String(120), nullable=False)
 
-    def __init__(self, title, content):
+    def __init__(self, title, content, topic_name, category):
         self.title = title
         self.content = content
+        self.topic_name = topic_name
+        self.category = category
 
     def __repr__(self):
         return '<Pages : id=%r, title=%s, content=%s>' % (self.id, self.title, self.content)
-
-class Notice(db.Model):
-    __tablename_ = 'notice'
-
-    id = db.Column(db.Integer, primary_key=True)
-    notice = db.Column(db.String(120), nullable=False)
-    page_id = db.Column(db.Integer, db.ForeignKey('pages.id'))
-    noticecontent = db.Column(db.String(120), nullable=False)
-
 
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
@@ -116,6 +126,8 @@ class UserRoles(db.Model):
     # Setup Flask-User and specify the User data-model
 user_manager = UserManager(app, db, User)
 
+admin.add_view(ModelView(Categories, db.session))
+admin.add_view(ModelView(Pages, db.session))
     # Create all database tables
 db.create_all()
 
@@ -141,10 +153,42 @@ if not User.query.filter(User.username == 'droidthelast').first():
     db.session.add(user)
     db.session.commit()
 
+class CategoriesForm(FlaskForm):
+    categories = StringField('Category', validators=[DataRequired()])
+    submit = SubmitField(u'Update')
+
+def cate_form():
+    return Categories.query
+
+class PagesForm(FlaskForm):
+    categories = QuerySelectField('Categories', query_factory=cate_form, get_label='Categories', allow_blank=False)
+    title = StringField('Title', validators=[DataRequired()])
+    content = TinyMceField(
+        'Content',
+        tinymce_options={'toolbar': 'bold italic | link | code'}
+    )
+    topic = StringField('Topic', validators=[DataRequired()])
+    submit = SubmitField(u'Upload')
+
 @app.route('/', methods=['POST', 'GET'])
 def index():
 	pages = Pages.query.all()
 	return render_template('index.html', pages=pages)
+
+
+@app.route('/new_post/')
+@login_required
+@roles_required('Admin')
+def new_post():
+    form = PagesForm()
+    return render_template('newpost.html', form=form)    
+
+@app.route('/new_category/')
+@login_required
+@roles_required('Admin')
+def new_category():
+    form = CategoriesForm()
+    return render_template('newcategory.html', form=form)    
 
 @app.route('/post/<int:page_id>')
 def post(page_id):
@@ -155,27 +199,39 @@ def post(page_id):
 @login_required
 def edit_page(page_id):
     page = Pages.query.filter_by(id=page_id).first()
-    return render_template('edit-page.html', id=page.id, category=page.category, title=page.title, page_created=page.page_created, content=page.content)
+    return render_template('edit.html', id=page.id, category=page.category, title=page.title, page_created=page.page_created, content=page.content)
 
-@app.route('/update-page/', methods=['POST'])
+@app.route('/update-post/', methods=['POST'])
 @login_required
-def update_page():
+def update_post():
     page_id = request.form['id']
     category = request.form['category']
     title = request.form['title']
     content = request.form['content']
     page_created = request.form['page_created']
-    Pages.query.filter_by(id=page_id).update({'title': title.encode('ascii'), 'category': category.encode('ascii'), 'page_created': page_created.encode('ascii'), 'content': content.encode('ascii')})
+    Pages.query.filter_by(id=page_id).update({'title': title, 'category': category, 'page_created': page_created, 'content': content})
     db.session.commit()
-    return redirect('/page/' + page_id)
+    return redirect('/post/' + page_id)
 
-@app.route('/save-page/', methods=['POST'])
+@app.route('/save-post/', methods=['POST', 'GET'])
 @login_required
-def save_page():
-    page = Pages(title=request.form['title'].encode('ascii'), category=request.form['category'].encode('ascii'), page_created=request.form['page_created'].encode('ascii'), content=request.form['content'].encode('ascii'))
+@roles_required('Admin')
+def save_post():
+    form = PagesForm()
+    page = Pages(title=form.title.data, category=form.categories.data, content=form.content.data, topic_name=form.topic.data)
     db.session.add(page)
     db.session.commit()
-    return redirect('/page/%d' % page.id)
+    return redirect('/post/%d' % page.id)
+
+@app.route('/save_cat/', methods=['POST', 'GET'])
+@login_required
+@roles_required('Admin')
+def save_cat():
+    form = CategoriesForm()
+    categ = Categories(category_name=form.categories.data)
+    db.session.add(categ)
+    db.session.commit()
+    return redirect('/')
 
 @app.route('/delete-page/<int:page_id>')
 @login_required

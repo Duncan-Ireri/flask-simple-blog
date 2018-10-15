@@ -1,0 +1,33 @@
+{% extends "layout.html" %} {% block title %}ADD FAQ{% endblock title %} {% block content %}
+<div class="container" style="padding-top: 150px;">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Add new Faq</h1>
+            <h3>Logged in as: {{ current_user.username }}</h3>
+        </div>
+        <br/>
+        <br/>
+
+
+        <form action="{{ url_for('save_cat') }}" method="POST">
+            <fieldset>
+                <legend>NEW POST</legend>
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    {{ form.categories.label }} {{ form.categories(class_="form-control") }}
+                </div>
+                <br> {{ form.submit }}
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+<script>
+    var editor = new wysihtml5.Editor('editor', {
+        toolbar: 'toolbar',
+        parserRules: wysihtml5ParserRules
+    });
+</script>
+
+{% endblock content %}
